@@ -1,8 +1,8 @@
-const express = require('express');
-const teacherController = require('../controllers/teacher.controller');
-const authMiddleware = require('../middleware/auth.middleware');
-const roleMiddleware = require('../middleware/role.middleware');
-const { upload } = require('../utils/cloudinary');
+import express from "express";
+import teacherController from '../controllers/teacher.controller'
+import authMiddleware from '../middleware/auth.middleware'
+import roleMiddleware from '../middleware/role.middleware'
+import { upload } from '../utils/cloudinary'
 
 const router = express.Router();
 

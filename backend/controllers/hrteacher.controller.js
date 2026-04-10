@@ -1,7 +1,7 @@
-const Attendance = require('../models/Attendance.model');
-const Result = require('../models/Result.model');
-const User = require('../models/User.model');
-const Announcement = require('../models/Announcement.model');
+import Attendance from '../models/Attendance.model';
+import Result from '../models/Result.model';
+import User from '../models/User.model';
+import Announcement from '../models/Announcement.model';
 
 // Get Student Attendance Summary
 exports.getStudentAttendanceSummary = async (req, res) => {

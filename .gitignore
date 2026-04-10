@@ -8,10 +8,6 @@ backend/node_modules/
 # ========================
 # ENV FILES (IMPORTANT 🔐)
 # ========================
-.env
-.env.*
-frontend/.env
-backend/.env
 
 # ========================
 # BUILD FILES

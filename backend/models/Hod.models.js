@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
-const teacherSchema = new mongoose.Schema(
+const hodSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true },
+    name: { type: String, required: true },
 
     email: {
       type: String,
@@ -16,16 +16,15 @@ const teacherSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-
     password: { type: String, required: true },
 
-    role: {
-      type: String,
-      default: "teacher",
-    },
      profilePicture: {
       type: String,
       default: null,
+    },
+    role: {
+      type: String,
+      default: "hod",
     },
 
     department: { type: String, required: true },
@@ -36,20 +35,13 @@ const teacherSchema = new mongoose.Schema(
       unique: true,
     },
 
-    subjects: [
-      {
-        name: String,
-        semester: Number,
-        division: String,
-      },
-    ],
-
-    isActive: {
-      type: Boolean,
-      default: true,
+    permissions: {
+      manageTimetable: { type: Boolean, default: true },
+      manageTeachers: { type: Boolean, default: true },
+      manageStudents: { type: Boolean, default: true },
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Teacher", teacherSchema);
+export default mongoose.model("HODTeacher", hodSchema);

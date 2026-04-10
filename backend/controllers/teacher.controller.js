@@ -1,8 +1,8 @@
-const Attendance = require('../models/Attendance.model');
-const Announcement = require('../models/Announcement.model');
-const File = require('../models/File.model');
-const User = require('../models/User.model');
-const { upload } = require('../utils/cloudinary');
+import Attendance from '../models/Attendance.model';
+import Announcement from '../models/Announcement.model';
+import File from '../models/File.model';
+import User from '../models/User.model';
+import {upload} from '../utils/cloudinary';
 
 // Mark Attendance
 exports.markAttendance = async (req, res) => {

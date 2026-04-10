@@ -1,8 +1,8 @@
-const Attendance = require('../models/Attendance.model');
-const Result = require('../models/Result.model');
-const Announcement = require('../models/Announcement.model');
-const File = require('../models/File.model');
-const User = require('../models/User.model');
+import Attendance from '../models/Attendance.model';
+import Result from '../models/Result.model';
+import Announcement from '../models/Announcement.model';
+import File from '../models/File.model';
+import User from '../models/User.model';
 
 // Get Student Attendance
 exports.getAttendance = async (req, res) => {

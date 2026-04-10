@@ -1,8 +1,8 @@
-const Timetable = require('../models/Timetable.model');
-const User = require('../models/User.model');
-const Attendance = require('../models/Attendance.model');
-const Result = require('../models/Result.model');
-const Announcement = require('../models/Announcement.model');
+import Timetable from '../models/Timetable.model';
+import User from '../models/User.model';
+import Attendance from '../models/Attendance.model';
+import Result from '../models/Result.model';
+import Announcement from '../models/Announcement.model';
 
 // Create Timetable
 exports.createTimetable = async (req, res) => {

@@ -1,7 +1,7 @@
-const express = require('express');
-const studentController = require('../controllers/student.controller');
-const authMiddleware = require('../middleware/auth.middleware');
-const roleMiddleware = require('../middleware/role.middleware');
+import express from "express";
+import studentController from '../controllers/student.controller';
+import authMiddleware from '../middleware/auth.middleware';
+import roleMiddleware from '../middleware/role.middleware';
 
 const router = express.Router();
 

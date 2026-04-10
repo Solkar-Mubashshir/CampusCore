@@ -146,9 +146,6 @@ export const verifyOTP = async (req, res) => {
       });
 };
 
-
-----------------------------------------------------------------------------------------------------------------------
-
 export const Logouthandaler = async (req, res) => {
   try {
     const AccessToken = req.cookies.AccessToken;

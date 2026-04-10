@@ -1,4 +1,4 @@
-import express from express();
+import express from "express";
 import { SendOTP, verifyOTP, Logouthandaler} from "../controllers/auth.controller";
 export const router = express.Router();
 
