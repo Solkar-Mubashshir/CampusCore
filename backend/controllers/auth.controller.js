@@ -1,148 +1,169 @@
-const User = require('../models/User.model');
-const jwt = require('jsonwebtoken');
+import StudentModel from "../models/Student.model";
+import TeacherModel from "../models/Student.model";
+import HRTeacherModel from "../models/Student.model";
+import HODModel from "../models/Student.model";
 
-// Generate JWT Token
-const generateToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+// ---------------------------------------------------------------------------------------------------------------------
+// global variables
+ const otp_data = {};
+ const OTP_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes
+// 
+
+// ----------------------------------------------------------------------------------------------------------------------
+// otp generator
+const generateOTP = () => {
+  return Math.floor(1000 + Math.random() * 9000).toString();
 };
+// ----------------------------------------------------------------------------------------------------------------------
 
-// Register User
-exports.register = async (req, res) => {
+// ----------------------------------------------------------------------------------------------------------------------
+// otp sender
+export const SendOTP = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, role, department, batch, enrollmentNumber } = req.body;
+    const { number } = req.body;
+    const pattern = /^[0-9]{10}$/; // pattern
+    let Student_num = await StudentModel.findOne({ number });
+    let teacher = await TeacherModel.findOne({ number });
+    let HRteacher = await HRTeacherModel.findOne({ number });
+    let HOD = await HODModel.findOne({ number });
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+    if (!pattern.test(number))
+      return res.status(400).json({ message: "Invalid number passed" });
+
+    if ((!Student_num) || ( !teacher || !HRteacher || !HOD)) {
+      return res.status(409).json({ message: "Check The number and try again"});
     }
 
-    // Create new user
-    const user = new User({
-      firstName,
-      lastName,
-      email,
-      password,
-      role,
-      department,
-      batch,
-      enrollmentNumber,
-    });
+    if ((Student_num) || (teacher ||  HRteacher || HOD)) {
+      const otp = generateOTP();
+      // ✅ STORE OTP WITH EXPIRY
+      otp_data[number] = {
+        otp,
+        expiresAt: Date.now() + OTP_EXPIRY_TIME,
+      };
 
-    await user.save();
+      const whatsapp_url = `https://graph.facebook.com/v20.0/${process.env.MOBILE_ID}/messages`;
 
-    const token = generateToken(user._id, user.role);
+      await axios.post(
+        whatsapp_url,
+        {
+          messaging_product: "whatsapp",
+          to: `91${number}`,
+          type: "template",
+          template: {
+            name: "delivery",
+            language: { code: "en" },
+            components: [
+              {
+                type: "body",
+                parameters: [{ type: "text", text: otp }],
+              },
+              {
+                type: "button",
+                sub_type: "url", // url button (Meta calls it URL)
+                index: 0, // index 0 -> first button
+                parameters: [
+                  { type: "text", text: "otp" },
+                  // <- fill with the actual URL your template expects
+                ],
+              },
+            ],
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.TOKENS}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-    res.status(201).json({
-      message: 'User registered successfully',
-      token,
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-      },
-    });
+      res.json({ success: true });
+    }
   } catch (error) {
-    res.status(500).json({ message: 'Registration failed', error: error.message });
+    console.error("Error sending OTP:", error.response?.data || error.message);
+    res.status(500).json({ error: "Failed to send OTP" });
   }
 };
+// ----------------------------------------------------------------------------------------------------------------------
 
-// Login User
-exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+// ----------------------------------------------------------------------------------------------------------------------
+// otp verification
+export const verifyOTP = async (req, res) => {
+  const { number, otp } = req.body;
 
-    // Validate input
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
-    }
-
-    // Find user with password field
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    // Compare password
-    const isPasswordCorrect = await user.comparePassword(password);
-    if (!isPasswordCorrect) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    const token = generateToken(user._id, user.role);
-
-    res.status(200).json({
-      message: 'Login successful',
-      token,
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        profilePicture: user.profilePicture,
-        department: user.department,
-        batch: user.batch,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Login failed', error: error.message });
+  if (!number || !otp) {
+    return res.status(400).json({ message: "Number and OTP required" });
   }
+
+  const record = otp_data[number];
+
+  // ❌ No OTP found
+  if (!record) {
+    return res.status(400).json({ message: "OTP expired or not found" });
+  }
+
+  // ❌ OTP expired
+  if (record.expiresAt < Date.now()) {
+    delete otp_data[number];
+    return res.status(400).json({ message: "OTP expired" });
+  }
+
+  // ❌ OTP mismatch
+  if (record.otp !== otp) {
+    return res.status(400).json({ message: "Invalid OTP" });
+  }
+
+  let user = await StudentModel.findOne({ number });
+
+  if (!user) {
+  let HOD = await HODModel.findOne({ number });
+}
+  if (!user) {
+  let HRteacher = await HRTeacherModel.findOne({ number });
+}
+  if (!user) {
+  let user = await TeacherModel.findOne({ number });
+}
+
+
+  // ✅ OTP verified
+  delete otp_data[number]; // one-time use
+    const accessToken = signAccessToken({
+      _id: user._id,
+      role: user.role,
+    });
+
+    return res
+      .cookie("AccessToken", accessToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .json({
+        redirect: user.role
+      });
 };
 
-// Get Current User
-exports.getCurrentUser = async (req, res) => {
+
+----------------------------------------------------------------------------------------------------------------------
+
+export const Logouthandaler = async (req, res) => {
   try {
-    const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    const AccessToken = req.cookies.AccessToken;
+    if (!AccessToken) {
+      return res.status(500).json({ message: "accesstoken not found" });
     }
-
-    res.status(200).json({
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        profilePicture: user.profilePicture,
-        phone: user.phone,
-        department: user.department,
-        batch: user.batch,
-        enrollmentNumber: user.enrollmentNumber,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to get user', error: error.message });
+    res
+      .clearCookie("AccessToken", {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+      })
+      .json({ message: "Logged out successfully" });
+  } catch (e) {
+    return res.json({ message: `${e}` });
   }
 };
-
-// Update Profile
-exports.updateProfile = async (req, res) => {
-  try {
-    const { firstName, lastName, phone, profilePicture } = req.body;
-
-    const user = await User.findByIdAndUpdate(
-      req.userId,
-      { firstName, lastName, phone, profilePicture },
-      { new: true }
-    );
-
-    res.status(200).json({
-      message: 'Profile updated successfully',
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        phone: user.phone,
-        profilePicture: user.profilePicture,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Profile update failed', error: error.message });
-  }
-};
+// ----------------------------------------------------------------------------------------------------------------------
