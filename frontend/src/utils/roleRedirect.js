@@ -1,26 +1,9 @@
-import { ROLES } from './roles';
-
-export const getRoleRedirectPath = (role) => {
-  const paths = {
-    [ROLES.STUDENT]: '/student/dashboard',
-    [ROLES.TEACHER]: '/teacher/dashboard',
-    [ROLES.HR_TEACHER]: '/hr/dashboard',
-    [ROLES.HOD]: '/hod/dashboard',
-  };
-
-  return paths[role] || '/login';
-};
-
-export const isValidRole = (role) => {
-  return Object.values(ROLES).includes(role);
-};
-
-export const canAccessRoute = (userRole, requiredRoles) => {
-  if (typeof requiredRoles === 'string') {
-    return userRole === requiredRoles;
-  }
-  return requiredRoles.includes(userRole);
-};
+export const ROLES = {
+  STUDENT: 'student',
+  TEACHER: 'teacher',
+  HR_TEACHER: 'hrteacher',
+  HOD: 'hod',
+}
 
 export const getRoleBasedNavItems = (role) => {
   const navItems = {
@@ -28,16 +11,14 @@ export const getRoleBasedNavItems = (role) => {
       { label: 'Dashboard', path: '/student/dashboard', icon: 'LayoutDashboard' },
       { label: 'Attendance', path: '/student/attendance', icon: 'Check' },
       { label: 'Results', path: '/student/results', icon: 'BarChart3' },
-      { label: 'Storage', path: '/student/storage', icon: 'HardDrive' },
+      { label: 'Storage', path: '/student/storage', icon: 'FolderOpen' },
       { label: 'Announcements', path: '/student/announcements', icon: 'Bell' },
       { label: 'Timetable', path: '/student/timetable', icon: 'Calendar' },
-      { label: 'Virtual ID', path: '/student/virtual-id', icon: 'FileText' },
-      { label: 'Credits', path: '/student/credits', icon: 'Trophy' },
+      { label: 'Virtual ID', path: '/student/virtual-id', icon: 'CreditCard' },
+      { label: 'Credits', path: '/student/credits', icon: 'Star' },
+      { label: 'Achievements', path: '/student/achievements', icon: 'Trophy' },
     ],
     [ROLES.TEACHER]: [
-      { label: 'Dashboard', path: '/teacher/dashboard', icon: 'LayoutDashboard' },
-      { label: 'Mark Attendance', path: '/teacher/mark-attendance', icon: 'Check' },
-      { label: 'Upload Notes', path: '/teacher/upload-notes', icon: 'Upload' },
       { label: 'Announcements', path: '/teacher/announcements', icon: 'Bell' },
       { label: 'My Classes', path: '/teacher/my-classes', icon: 'Users' },
     ],
@@ -55,7 +36,6 @@ export const getRoleBasedNavItems = (role) => {
       { label: 'Analytics', path: '/hod/analytics', icon: 'TrendingUp' },
       { label: 'Announcements', path: '/hod/announcements', icon: 'Bell' },
     ],
-  };
-
-  return navItems[role] || [];
-};
+  }
+  return navItems[role] || []
+}

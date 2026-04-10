@@ -1,121 +1,69 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/shared/ProtectedRoute'
+import Login from './pages/Login'
 
-function App() {
-  const [count, setCount] = useState(0)
+import StudentDashboard from './pages/student/StudentDashboard'
+import Attendance from './pages/student/Attendance'
+import Results from './pages/student/Results'
+import Storage from './pages/student/Storage'
+import StudentAnnouncements from './pages/student/Announcements'
+import Timetable from './pages/student/Timetable'
+import VirtualID from './pages/student/VirtualID'
+import Credits from './pages/student/Credits'
+import Achievements from './pages/student/Achievements'
 
+import TeacherDashboard from './pages/teacher/TeacherDashboard'
+import MarkAttendance from './pages/teacher/MarkAttendance'
+import UploadNotes from './pages/teacher/UploadNotes'
+import TeacherAnnouncements from './pages/teacher/Announcements'
+
+import HRDashboard from './pages/hrteacher/HRDashboard'
+import StudentOverview from './pages/hrteacher/StudentOverview'
+import PerformanceReport from './pages/hrteacher/PerformanceReport'
+
+import HODDashboard from './pages/hod/HODDashboard'
+import TimetableManager from './pages/hod/TimetableManager'
+import BatchOverview from './pages/hod/BatchOverview'
+
+export default function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
-      <div className="ticks"></div>
+          <Route path="/student/dashboard" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
+          <Route path="/student/attendance" element={<ProtectedRoute role="student"><Attendance /></ProtectedRoute>} />
+          <Route path="/student/results" element={<ProtectedRoute role="student"><Results /></ProtectedRoute>} />
+          <Route path="/student/storage" element={<ProtectedRoute role="student"><Storage /></ProtectedRoute>} />
+          <Route path="/student/announcements" element={<ProtectedRoute role="student"><StudentAnnouncements /></ProtectedRoute>} />
+          <Route path="/student/timetable" element={<ProtectedRoute role="student"><Timetable /></ProtectedRoute>} />
+          <Route path="/student/virtual-id" element={<ProtectedRoute role="student"><VirtualID /></ProtectedRoute>} />
+          <Route path="/student/credits" element={<ProtectedRoute role="student"><Credits /></ProtectedRoute>} />
+          <Route path="/student/achievements" element={<ProtectedRoute role="student"><Achievements /></ProtectedRoute>} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          <Route path="/teacher/dashboard" element={<ProtectedRoute role="teacher"><TeacherDashboard /></ProtectedRoute>} />
+          <Route path="/teacher/announcements" element={<ProtectedRoute role="teacher"><TeacherAnnouncements /></ProtectedRoute>} />
+          <Route path="/teacher/my-classes" element={<ProtectedRoute role="teacher"><MarkAttendance /></ProtectedRoute>} />
+          <Route path="/teacher/upload-notes" element={<ProtectedRoute role="teacher"><UploadNotes /></ProtectedRoute>} />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+          <Route path="/hr/dashboard" element={<ProtectedRoute role="hrteacher"><HRDashboard /></ProtectedRoute>} />
+          <Route path="/hr/attendance" element={<ProtectedRoute role="hrteacher"><StudentOverview /></ProtectedRoute>} />
+          <Route path="/hr/performance" element={<ProtectedRoute role="hrteacher"><PerformanceReport /></ProtectedRoute>} />
+          <Route path="/hr/students" element={<ProtectedRoute role="hrteacher"><StudentOverview /></ProtectedRoute>} />
+          <Route path="/hr/analytics" element={<ProtectedRoute role="hrteacher"><PerformanceReport /></ProtectedRoute>} />
+
+          <Route path="/hod/dashboard" element={<ProtectedRoute role="hod"><HODDashboard /></ProtectedRoute>} />
+          <Route path="/hod/timetable" element={<ProtectedRoute role="hod"><TimetableManager /></ProtectedRoute>} />
+          <Route path="/hod/batches" element={<ProtectedRoute role="hod"><BatchOverview /></ProtectedRoute>} />
+          <Route path="/hod/analytics" element={<ProtectedRoute role="hod"><HODDashboard /></ProtectedRoute>} />
+          <Route path="/hod/announcements" element={<ProtectedRoute role="hod"><TeacherAnnouncements /></ProtectedRoute>} />
+
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }
-
-export default App

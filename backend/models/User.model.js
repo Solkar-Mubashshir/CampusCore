@@ -47,7 +47,6 @@ const userSchema = new mongoose.Schema(
     },
     enrollmentNumber: {
       type: String,
-      unique: true,
       sparse: true,
       default: null,
     },

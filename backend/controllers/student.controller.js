@@ -51,7 +51,7 @@ exports.syncOfflineAttendance = async (req, res) => {
         subject: record.subject,
         batch: record.batch,
         syncedFromOffline: true,
-        timestamp: new Date(record.timestamp), // Preserve exact timestamp
+        timestamp: new Date(record.timestamp),
       });
 
       const saved = await attendance.save();
@@ -72,7 +72,6 @@ exports.getResults = async (req, res) => {
   try {
     const results = await Result.find({ studentId: req.userId });
 
-    // Group results by semester
     const resultsBySemester = {};
     results.forEach(result => {
       if (!resultsBySemester[result.semester]) {
@@ -100,7 +99,6 @@ exports.getStorage = async (req, res) => {
       folderPath: { $regex: studentFolder },
     }).populate('uploadedBy', 'firstName lastName');
 
-    // Group by folder
     const folderStructure = {};
     files.forEach(file => {
       if (!folderStructure[file.folderPath]) {
@@ -124,13 +122,25 @@ exports.getAnnouncements = async (req, res) => {
     const student = await User.findById(req.userId);
 
     const announcements = await Announcement.find({
-      $or: [
-        { isGlobal: true },
-        { batch: student.batch },
-        { targetRole: 'student' },
+      $and: [
+        {
+          $or: [
+            { isGlobal: true },
+            { batch: student.batch },
+            { targetRole: 'student' },
+          ],
+        },
+        {
+          $or: [
+            { expiresAt: { $gt: new Date() } },
+            { expiresAt: { $exists: false } },
+            { expiresAt: null },
+          ],
+        },
       ],
-      expiresAt: { $gt: new Date() || $exists: false },
-    }).populate('createdBy', 'firstName lastName').sort({ publishedAt: -1 });
+    })
+      .populate('createdBy', 'firstName lastName')
+      .sort({ publishedAt: -1 });
 
     res.status(200).json({ announcements });
   } catch (error) {
@@ -203,15 +213,15 @@ exports.getCredits = async (req, res) => {
 
     const totalCredits = results.length;
     const passedCredits = results.filter(r => r.status === 'pass').length;
-    const avgGPA = (
+    const avgGPA = results.length ? (
       results.reduce((acc, r) => acc + (r.totalMarks / 100) * 4, 0) / results.length
-    ).toFixed(2);
+    ).toFixed(2) : '0.00';
 
     res.status(200).json({
       totalCredits,
       passedCredits,
       avgGPA,
-      activityPoints: 0, // Can be calculated from achievements
+      activityPoints: 0,
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch credits', error: error.message });

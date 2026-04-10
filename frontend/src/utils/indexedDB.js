@@ -1,135 +1,57 @@
-const DB_NAME = 'CampusCore';
-const STORE_NAME = 'attendanceOffline';
-const VERSION = 1;
+const DB_NAME = 'campuscore_offline'
+const DB_VERSION = 1
+const STORE = 'attendance'
 
-let db = null;
-
-// Initialize IndexedDB
-export const initIndexedDB = () => {
+function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, VERSION);
-
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => {
-      db = request.result;
-      resolve(db);
-    };
-
-    request.onupgradeneeded = (event) => {
-      const database = event.target.result;
-      if (!database.objectStoreNames.contains(STORE_NAME)) {
-        const store = database.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-        store.createIndex('syncedAt', 'syncedAt', { unique: false });
+    const req = indexedDB.open(DB_NAME, DB_VERSION)
+    req.onupgradeneeded = e => {
+      const db = e.target.result
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true })
       }
-    };
-  });
-};
-
-// Add attendance record to offline storage
-export const addOfflineAttendance = (record) => {
-  return new Promise((resolve, reject) => {
-    if (!db) {
-      reject(new Error('IndexedDB not initialized'));
-      return;
     }
+    req.onsuccess = e => resolve(e.target.result)
+    req.onerror = () => reject(req.error)
+  })
+}
 
-    const transaction = db.transaction([STORE_NAME], 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.add({
+export async function saveAttendanceOffline(record) {
+  const db = await openDB()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite')
+    tx.objectStore(STORE).add({
       ...record,
       timestamp: new Date().toISOString(),
       synced: false,
-    });
+    })
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
+  })
+}
 
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-  });
-};
-
-// Get all offline attendance records
-export const getOfflineAttendance = () => {
+export async function getPendingAttendance() {
+  const db = await openDB()
   return new Promise((resolve, reject) => {
-    if (!db) {
-      reject(new Error('IndexedDB not initialized'));
-      return;
-    }
+    const tx = db.transaction(STORE, 'readonly')
+    const req = tx.objectStore(STORE).getAll()
+    req.onsuccess = () => resolve(req.result.filter(r => !r.synced))
+    req.onerror = () => reject(req.error)
+  })
+}
 
-    const transaction = db.transaction([STORE_NAME], 'readonly');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.getAll();
-
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-  });
-};
-
-// Get unsyced offline records
-export const getUnsyncedAttendance = () => {
+export async function markSynced(id) {
+  const db = await openDB()
   return new Promise((resolve, reject) => {
-    if (!db) {
-      reject(new Error('IndexedDB not initialized'));
-      return;
+    const tx = db.transaction(STORE, 'readwrite')
+    const store = tx.objectStore(STORE)
+    const req = store.get(id)
+    req.onsuccess = () => {
+      const record = req.result
+      record.synced = true
+      store.put(record)
     }
-
-    const transaction = db.transaction([STORE_NAME], 'readonly');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.getAll();
-
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => {
-      const unsynced = request.result.filter(record => !record.synced);
-      resolve(unsynced);
-    };
-  });
-};
-
-// Mark records as synced
-export const markAsSynced = (ids) => {
-  return new Promise((resolve, reject) => {
-    if (!db) {
-      reject(new Error('IndexedDB not initialized'));
-      return;
-    }
-
-    const transaction = db.transaction([STORE_NAME], 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
-
-    ids.forEach(id => {
-      const request = store.get(id);
-      request.onsuccess = () => {
-        const record = request.result;
-        record.synced = true;
-        store.put(record);
-      };
-    });
-
-    transaction.onerror = () => reject(transaction.error);
-    transaction.oncomplete = () => resolve(true);
-  });
-};
-
-// Clear offline storage
-export const clearOfflineAttendance = () => {
-  return new Promise((resolve, reject) => {
-    if (!db) {
-      reject(new Error('IndexedDB not initialized'));
-      return;
-    }
-
-    const transaction = db.transaction([STORE_NAME], 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.clear();
-
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(true);
-  });
-};
-
-// Register Service Worker for offline support
-export const registerServiceWorker = () => {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(err => {
-      console.warn('Service Worker registration failed:', err);
-    });
-  }
-};
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
+  })
+}
